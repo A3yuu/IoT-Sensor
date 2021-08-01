@@ -88,6 +88,12 @@ SDA:SDA
 
 # Note
 
+下記参考
+
+SCD4xデータシート
+
+URLのデコード(https://qiita.com/dojyorin/items/07efd4a55039bcc30cb2)
+
 # Author
 
 https://twitter.com/A3_yuu

@@ -2,9 +2,9 @@
 
 #include "Spreadsheet.h"
 
-const char* ssid = "LB-LAN";
-const char* password = "LittleBear";
-String published_url = "https://script.google.com/macros/s/AKfycbxmxmwkK1w1yby30aSWK8KfJN1ZPdCCxJFfSfnSraJ3kB50XBv3JjzWTQvJ9wlUtElr_g/exec";
+const char* ssid = "ssid";
+const char* password = "pass";
+String published_url = "https://script.google.com/macros/s/***/exec";
 
 void setup(){
   Serial.begin(115200);

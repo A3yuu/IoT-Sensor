@@ -3,8 +3,8 @@
 
 #include "Server.h"
 
-const char* ssid = "LB-LAN";
-const char* password = "LittleBear";
+const char* ssid = "ssid";
+const char* password = "pass";
 
 void setup()
 {
