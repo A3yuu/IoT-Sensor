@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="ja">
+	<head>
+		<title>Sensor</title>
+		<style>body{text-align:center;}</style>
+		<script src="https://www.gstatic.com/charts/loader.js"/></script>
+	</head>
+
+	<body>
+		<span id="co2Text" style="font-size:4em;">---</span>ppm<br/>
+		<span id="tmpText" style="font-size:2em;">---</span>Åé
+		<span id="humText" style="font-size:2em;">---</span>%RH<br/>
+		<input type="date"></input><br/>
+		<div id="target"></div>
+		<script>
+			//Date
+			var data;
+			var fromChart = new Date();
+			fromChart.setHours(0);
+			fromChart.setMinutes(0);
+			fromChart.setSeconds(0);
+			fromChart.setMilliseconds(0);
+			var toChart = new Date(fromChart);
+			toChart.setHours(24);
+			//Input
+			document.querySelector('input').addEventListener('input', updateValue);
+			function updateValue(e) {
+				fromChart = new Date(e.target.value);
+				fromChart.setHours(0);
+				toChart = new Date(e.target.value);
+				toChart.setHours(24);
+				reDrawChart() ;
+			}
+			function resizeWindow(event){
+				reDrawChart() ;
+			}
+			window.addEventListener('resize', resizeWindow);
+			//Graph
+			google.charts.load('48', {packages: ['corechart']}).then(drawChart);
+			function reDrawChart() {
+				var options = {
+					height: 640,
+					series: {
+						0: {targetAxisIndex:0},
+						1: {targetAxisIndex:1},
+						2: {targetAxisIndex:2},
+					},
+					vAxes: {
+						0:{title:'',minValue:0,textStyle:{color: 'orange'}},
+						1:{title:'',minValue:-30,maxValue:70,textStyle:{color: 'red'}},
+						2:{title:'',minValue:0,maxValue:100,textStyle:{color: 'blue'}}
+					},
+					hAxis: {
+						format: 'HH:mm',
+						viewWindow: {
+							min: fromChart, 
+							max: toChart
+						}
+					},
+					colors: ['orange','red','blue']
+				};
+				var chart = new google.visualization.LineChart(document.getElementById('target'));
+				chart.draw(data, options);
+			}
+			function drawChart() {
+				var query = new google.visualization.Query('https://docs.google.com/spreadsheets/d/***/edit');
+				query.send(handleDataQueryResponse);
+			 }
+			function handleDataQueryResponse(response) {
+				data = response.getDataTable();
+				document.getElementById('co2Text').innerHTML=data.getFormattedValue(1, 1);
+				document.getElementById('tmpText').innerHTML=data.getFormattedValue(1, 2);
+				document.getElementById('humText').innerHTML=data.getFormattedValue(1, 3);
+				data.setColumnLabel(1,'CO2(ppm)');
+				data.setColumnLabel(2,'Temperature(Åé)');
+				data.setColumnLabel(3,'Humidity(%RH)');
+				reDrawChart() ;
+			}
+		</script>
+	</body>
+</html>
