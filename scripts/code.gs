@@ -12,5 +12,7 @@ function doPost(e)
   sheet.getRange(1, 4).setValue(humidity);
 }
 function doGet() {
-  return HtmlService.createHtmlOutputFromFile('index');
+  var html = HtmlService.createTemplateFromFile('index');
+  html.url = SpreadsheetApp.getActiveSpreadsheet().getUrl();
+  return html.evaluate();
 }

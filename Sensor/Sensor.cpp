@@ -89,7 +89,7 @@ int scd4x_Setup()
   ret = scd4x_stop_periodic_measurement();
   delay(500);
   ret += 10 * scd4x_set_temperature_offset(0);
-  ret += 100 * scd40_start_periodic_measurement();
+  ret += 100 * scd4x_start_low_power_periodic_measurement();
   return ret;
 }
 

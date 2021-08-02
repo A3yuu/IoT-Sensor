@@ -63,14 +63,14 @@
 				chart.draw(data, options);
 			}
 			function drawChart() {
-				var query = new google.visualization.Query('https://docs.google.com/spreadsheets/d/***/edit');
+				var query = new google.visualization.Query(<?= url ?>);
 				query.send(handleDataQueryResponse);
 			 }
 			function handleDataQueryResponse(response) {
 				data = response.getDataTable();
-				document.getElementById('co2Text').innerHTML=data.getFormattedValue(1, 1);
-				document.getElementById('tmpText').innerHTML=data.getFormattedValue(1, 2);
-				document.getElementById('humText').innerHTML=data.getFormattedValue(1, 3);
+				document.getElementById('co2Text').innerHTML=data.getFormattedValue(0, 1);
+				document.getElementById('tmpText').innerHTML=data.getFormattedValue(0, 2);
+				document.getElementById('humText').innerHTML=data.getFormattedValue(0, 3);
 				data.setColumnLabel(1,'CO2(ppm)');
 				data.setColumnLabel(2,'Temperature(Åé)');
 				data.setColumnLabel(3,'Humidity(%RH)');

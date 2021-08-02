@@ -68,8 +68,6 @@ SDA:SDA
 
 ④Spreadsheetのツール内「スクリプト エディタ」に「scripts/code.gs」「scripts/index.html」を書き、デプロイする。
 
-このとき、「 https://docs.google.com/spreadsheets/d/***/edit 」はSpreadsheetのアドレスに書き換える。
-
 # Usage
 
 プロダクトにUSB電源を入れる。
