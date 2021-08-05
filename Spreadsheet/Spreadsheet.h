@@ -1,2 +1,2 @@
 
-void spreadsheetPut(String uri, String data);
+String spreadsheetPut(String uri, String data);

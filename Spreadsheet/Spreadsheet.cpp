@@ -2,21 +2,18 @@
 
 #include "Spreadsheet.h"
 
-void spreadsheetPut(String uri, String data) {
-  Serial.println("Spreadsheet:HTTP");
+String spreadsheetPut(String uri, String data) {
+  String ret = "";
   HTTPClient http;
   http.begin(uri);
-  Serial.println("Spreadsheet:POST");
   int httpCode = http.POST(data);
   if (httpCode > 0) {
     if (httpCode == HTTP_CODE_OK) {
-      String payload = http.getString();
-      Serial.print("Spreadsheet:payload:");
-      Serial.println(payload);
+      ret = http.getString();
     }
   } else {
-    Serial.print("Spreadsheet:error:");
-    Serial.println(http.errorToString(httpCode));
+    ret = http.errorToString(httpCode);
   }
   http.end();
+  return ret;
 }

@@ -4,6 +4,8 @@
 
 unsigned char i2c_address = 0x62;
 
+int scd4x_offset = 0;
+
 //SCD4xLib
 #define CRC8_POLYNOMIAL 0x31
 #define CRC8_INIT 0xFF
@@ -24,7 +26,7 @@ uint8_t sensirion_common_generate_crc(const uint8_t* data, uint16_t count) {
   return crc;
 }
 
-int scd40_start_periodic_measurement () {
+int scd4x_start_periodic_measurement () {
   Wire.beginTransmission(i2c_address);
   Wire.write(0x21);
   Wire.write(0xb1);
@@ -44,6 +46,20 @@ int scd4x_stop_periodic_measurement() {
   return -Wire.endTransmission();
 }
 
+int scd4x_measure_single_shot() {
+  Wire.beginTransmission(i2c_address);
+  Wire.write(0x21);
+  Wire.write(0x9d);
+  return -Wire.endTransmission();
+}
+
+int scd4x_measure_single_shot_rht_only () {
+  Wire.beginTransmission(i2c_address);
+  Wire.write(0x21);
+  Wire.write(0x96);
+  return -Wire.endTransmission();
+}
+
 int scd4x_read_measurement(Measurements& measurements) {
   Wire.beginTransmission(i2c_address);
   Wire.write(0xec);
@@ -60,7 +76,7 @@ int scd4x_read_measurement(Measurements& measurements) {
   for (int i = 0; i < 3; i++) {
     uint8_t crc = sensirion_common_generate_crc(data + i * 3, 2);
     if (crc != data[i * 3 + 2])return -5;
-    data16[i] = ((uint16_t)data[i * 3])<<8 | data[i * 3 + 1];
+    data16[i] = ((uint16_t)data[i * 3]) << 8 | data[i * 3 + 1];
   }
   measurements.co2 = data16[0];
   measurements.temperature = -45 + 175 * ((float)data16[1]) / 65536;
@@ -83,27 +99,46 @@ int scd4x_set_temperature_offset(float offset) {
   return -Wire.endTransmission();
 }
 
-int scd4x_Setup()
+unsigned long startTime;
+int sensorSingleStart(int offset)
+{
+  Wire.begin(25, 21);
+  int ret;
+  ret = scd4x_set_temperature_offset(offset);
+  ret += 10 * scd4x_measure_single_shot();
+  startTime = millis();
+  return ret;
+}
+
+int sensorSingleGet(Measurements& measurements)
+{
+  unsigned long nowTime = millis();
+  if (nowTime < startTime + 5000)delay(startTime + 5000 - nowTime);
+  return scd4x_read_measurement(measurements);
+}
+
+int scd4x_Setup(int offset)
 {
   int ret;
+  scd4x_offset = offset;
   ret = scd4x_stop_periodic_measurement();
   delay(500);
-  ret += 10 * scd4x_set_temperature_offset(0);
+  ret += 10 * scd4x_set_temperature_offset(scd4x_offset);
   ret += 100 * scd4x_start_low_power_periodic_measurement();
   return ret;
 }
 
-int sensorSetup()
+int sensorSetup(int offset)
 {
   Wire.begin(25, 21);
-  return scd4x_Setup();
+  return scd4x_Setup(scd4x_offset);
 }
 
 int sensorGet(Measurements& measurements)
 {
   int ret = scd4x_read_measurement(measurements);
   if (ret <= 0) {
-    ret += 10 * scd4x_Setup();
+    ret += 10 * scd4x_Setup(scd4x_offset);
   }
   return ret;
 }

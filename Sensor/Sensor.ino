@@ -2,6 +2,7 @@
 
 void setup()
 {
+  setCpuFrequencyMhz(60);
   Serial.begin(115200);
   while (!Serial);
   sensorSetup();

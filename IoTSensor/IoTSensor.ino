@@ -6,6 +6,9 @@
 #include "Spreadsheet.h"
 #include "Sensor.h"
 
+const int BUTTON_WPS = 39;
+const int TEMPERATURE_OFFSET = 4;
+
 struct SaveData saveData;
 unsigned long oldTime;
 Measurements measurements;
@@ -14,7 +17,9 @@ float co2LED = 1;
 
 void setup()
 {
-  M5.begin(true, false, true);
+  M5.begin(true, false, true); // Serial, I2C, LED
+  setCpuFrequencyMhz(60);
+  pinMode(BUTTON_WPS, INPUT);
   delay(50);
   //EEPROM
   M5.dis.drawpix(0, CRGB::Magenta);
@@ -22,13 +27,14 @@ void setup()
   dataGet(saveData);
   //Sensor
   M5.dis.drawpix(0, CRGB::Yellow);
-  sensorSetup();
+  sensorSetup(TEMPERATURE_OFFSET);
   //WPS
   M5.dis.drawpix(0, CRGB::Cyan);
   WPSSetup();
   //Server
   M5.dis.drawpix(0, CRGB::Green);
   serverSetup();
+  serverSet(String(saveData.uri));
   //Time
   oldTime =  millis();
 }
@@ -36,7 +42,7 @@ void loop() {
   unsigned long nowTime = millis();
   //LED
   float brightness = sin(nowTime / 2000.0) * 0.3 + 0.7;
-  M5.dis.drawpix(0, CHSV(hueRed*co2LED, 255, 255 * brightness));
+  M5.dis.drawpix(0, CHSV(hueRed * co2LED, 255, 255 * brightness));
   //Measurement and push
   if (abs(nowTime - oldTime) > 600000) {
     oldTime = nowTime;
@@ -48,11 +54,14 @@ void loop() {
     co2LED = constrain((measurements.co2 - 400) / 1600.0, 0, 1);
   }
   //Server standby
-  WPSLoop();
+  if (!digitalRead(BUTTON_WPS)) {
+    WPSStart();
+  }
   if (serverLoop()) {
-    Serial.println("URI Update");
+    Serial.print("URI Update:");
     M5.dis.drawpix(0, CRGB::White);
     serverGet().toCharArray(saveData.uri, 256);
+    Serial.println(saveData.uri);
     dataSave(saveData);
   }
   //M5

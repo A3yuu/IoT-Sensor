@@ -60,24 +60,18 @@ void send_response(WiFiClient client) {
   client.print("</form> ");
   client.print("</body>");
   client.print("</html>");
-  Serial.println( "Server:send responce");
 }
 
 bool serverLoop() {
   bool ret = false;
   WiFiClient client = server.available();
   if (client) {
-    Serial.println("Server:accessed");
     while (client.connected()) {
       if (client.available()) {
         String line = client.readStringUntil('\n');
-        Serial.print("Server:client:") ;
-        Serial.println(line);
         int pos;
         if ((pos = line.indexOf("GET /?uri_gs")) != -1) {
           uri_gs = urlDecode(line.substring(pos + 13, line.length() - 18).c_str());
-          Serial.print("Server:uri:");
-          Serial.println(uri_gs) ;
           ret = true;
         }
         if (line.length() == 1 && line[0] == '\r') {
@@ -88,11 +82,14 @@ bool serverLoop() {
     }
     delay(1);
     client.stop();
-    Serial.println("Server:disconnected");
   }
   return ret;
 }
 
 String serverGet() {
   return uri_gs;
+}
+
+void serverSet(String uri) {
+  uri_gs = uri;
 }

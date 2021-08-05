@@ -1,7 +1,7 @@
-#include "WPS.h"
-
 #include <WiFi.h>
 #include <esp_wps.h>
+
+#include "WPS.h"
 
 static esp_wps_config_t config;
 
@@ -23,40 +23,60 @@ String wpspin2string(uint8_t a[]) {
   return (String)wps_pin;
 }
 
+int wifiState = -1;
+String IP;
+String SSID;
+String PIN;
+
+int WPSStateGet() {
+  return wifiState;
+}
+String IPGet() {
+  return IP;
+}
+String SSIDGet() {
+  return SSID;
+}
+String PINGet() {
+  return PIN;
+}
+
 void WiFiEvent(WiFiEvent_t event, system_event_info_t info) {
   switch (event) {
     case SYSTEM_EVENT_STA_START:
-      Serial.println("WPS:Station Mode Started");
+      wifiState = STA_START;
       break;
     case SYSTEM_EVENT_STA_GOT_IP:
-      Serial.println("WPS:Connected to :" + String(WiFi.SSID()));
-      Serial.print("WPS:Got IP: ");
-      Serial.println(WiFi.localIP());
+      SSID = WiFi.SSID();
+      IP = (String)WiFi.localIP();
+      wifiState = STA_GOT_IP;
       break;
     case SYSTEM_EVENT_STA_DISCONNECTED:
-      Serial.println("WPS:Disconnected from station, attempting reconnection");
+      wifiState = STA_DISCONNECTED;
       WiFi.reconnect();
       break;
     case SYSTEM_EVENT_STA_WPS_ER_SUCCESS:
-      Serial.println("WPS:Successfull, stopping WPS and connecting to: " + String(WiFi.SSID()));
+      wifiState =  STA_WPS_ER_SUCCESS;
+      SSID = WiFi.SSID();
       esp_wifi_wps_disable();
       delay(10);
       WiFi.begin();
       break;
     case SYSTEM_EVENT_STA_WPS_ER_FAILED:
-      Serial.println("WPS:Failed, retrying");
+      wifiState =  STA_WPS_ER_FAILED;
       esp_wifi_wps_disable();
       esp_wifi_wps_enable(&config);
       esp_wifi_wps_start(0);
       break;
     case SYSTEM_EVENT_STA_WPS_ER_TIMEOUT:
-      Serial.println("WPS:Timedout, retrying");
+      wifiState =  STA_WPS_ER_TIMEOUT;
       esp_wifi_wps_disable();
       esp_wifi_wps_enable(&config);
       esp_wifi_wps_start(0);
       break;
     case SYSTEM_EVENT_STA_WPS_ER_PIN:
-      Serial.println("WPS:PIN = " + wpspin2string(info.sta_er_pin.pin_code));
+      wifiState =  STA_WPS_ER_PIN;
+      PIN = wpspin2string(info.sta_er_pin.pin_code);
       break;
     default:
       break;
@@ -67,17 +87,11 @@ void WPSSetup() {
   WiFi.onEvent(WiFiEvent);
   WiFi.mode(WIFI_MODE_STA);
   WiFi.begin();
-
-  pinMode(BUTTON_WPS, INPUT);
 }
-void WPSLoop() {
-  if (!digitalRead(BUTTON_WPS)) {
-    Serial.println("WPS:Starting");
-    WiFi.disconnect();
-    wpsInitConfig();
-    esp_wifi_wps_disable();
-    esp_wifi_wps_enable(&config);
-    esp_wifi_wps_start(0);
-    delay(10);
-  }
+void WPSStart() {
+  WiFi.disconnect();
+  wpsInitConfig();
+  esp_wifi_wps_disable();
+  esp_wifi_wps_enable(&config);
+  esp_wifi_wps_start(0);
 }
