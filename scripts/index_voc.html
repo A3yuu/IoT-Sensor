@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="ja">
+	<head>
+		<title>Sensor</title>
+		<style>body{text-align:center;}</style>
+		<script src="https://www.gstatic.com/charts/loader.js"/></script>
+	</head>
+
+	<body>
+		<span id="co2Text" style="font-size:4em;">---</span>ppm<br/>
+		<span id="tmpText" style="font-size:2em;">---</span>Åé
+		<span id="humText" style="font-size:2em;">---</span>%RH<br/>
+		<span id="vocText" style="font-size:2em;">---</span>VOC Index<br/>
+		<input type="date"></input><br/>
+		<div id="target"></div>
+		<script>
+			//Date
+			var data;
+			var fromChart = new Date();
+			fromChart.setHours(0);
+			fromChart.setMinutes(0);
+			fromChart.setSeconds(0);
+			fromChart.setMilliseconds(0);
+			var toChart = new Date(fromChart);
+			toChart.setHours(24);
+			//Input
+			document.querySelector('input').addEventListener('input', updateValue);
+			function updateValue(e) {
+				fromChart = new Date(e.target.value);
+				fromChart.setHours(0);
+				toChart = new Date(e.target.value);
+				toChart.setHours(24);
+				reDrawChart() ;
+			}
+			function resizeWindow(event){
+				reDrawChart() ;
+			}
+			window.addEventListener('resize', resizeWindow);
+			//Graph
+			google.charts.load('48', {packages: ['corechart']}).then(drawChart);
+			function reDrawChart() {
+				var options = {
+					width: '100%',
+					height: 640,
+					chartArea: {
+					 	left:48,
+						right:128,
+						bottom:32, 
+						top:32,
+						width: '100%',
+						height: '100%'
+					},
+					series: {
+						0: {targetAxisIndex:0},
+						1: {targetAxisIndex:1},
+						2: {targetAxisIndex:2},
+						3: {targetAxisIndex:3},
+					},
+					vAxes: {
+						0:{title:'',minValue:0,textStyle:{color: 'orange'}},
+						1:{title:'',minValue:0,maxValue:40,textStyle:{color: 'red'}},
+						2:{title:'',minValue:0,maxValue:100,textStyle:{color: 'blue'}},
+						3:{title:'',minValue:0,maxValue:500,textStyle:{color: 'purple'}}
+					},
+					hAxis: {
+						format: 'HH:mm',
+						viewWindow: {
+							min: fromChart, 
+							max: toChart
+						}
+					},
+					colors: ['orange','red','blue','purple']
+				};
+				var container = document.getElementById('target');
+				var chart = new google.visualization.LineChart(container);
+				//multi vAxes tweek
+				google.visualization.events.addListener(chart, 'ready', function () {
+					var labels = container.getElementsByTagName('text');
+					Array.prototype.forEach.call(labels, function(label) {
+						if (label.getAttribute('fill') === '#0000ff') {
+							var xCoord = parseFloat(label.getAttribute('x'));
+							label.setAttribute('x', xCoord + 32);
+						}
+						if (label.getAttribute('fill') === '#800080') {
+							var xCoord = parseFloat(label.getAttribute('x'));
+							label.setAttribute('x', xCoord + 64);
+						}
+					});
+				});
+				chart.draw(data, options);
+			}
+			function drawChart() {
+				var query = new google.visualization.Query(<?= url ?>);
+				query.send(handleDataQueryResponse);
+			 }
+			function handleDataQueryResponse(response) {
+				data = response.getDataTable();
+				document.getElementById('co2Text').innerHTML=data.getFormattedValue(0, 1);
+				document.getElementById('tmpText').innerHTML=data.getFormattedValue(0, 2);
+				document.getElementById('humText').innerHTML=data.getFormattedValue(0, 3);
+				document.getElementById('vocText').innerHTML=data.getFormattedValue(0, 4);
+				data.setColumnLabel(1,'CO2(ppm)');
+				data.setColumnLabel(2,'Temperature(Åé)');
+				data.setColumnLabel(3,'Humidity(%RH)');
+				data.setColumnLabel(4,'VOC Index');
+				reDrawChart() ;
+			}
+		</script>
+	</body>
+</html>

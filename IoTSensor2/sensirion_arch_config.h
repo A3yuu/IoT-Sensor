@@ -1,0 +1,1 @@
+../SensorSGP40/sensirion_arch_config.h

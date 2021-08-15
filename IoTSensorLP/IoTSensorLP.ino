@@ -22,6 +22,7 @@ void setup()
   setCpuFrequencyMhz(60);
   pinMode(BUTTON_WPS, INPUT);
   //Sensor
+  Wire.begin(25, 21);
   sensorSingleStart(TEMPERATURE_OFFSET);
   //EEPROM
   saveSetup();

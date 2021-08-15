@@ -20,6 +20,7 @@ void setup()
   M5.begin(true, false, true); // Serial, I2C, LED
   setCpuFrequencyMhz(60);
   pinMode(BUTTON_WPS, INPUT);
+  Wire.begin(25, 21);
   delay(50);
   //EEPROM
   M5.dis.drawpix(0, CRGB::Magenta);

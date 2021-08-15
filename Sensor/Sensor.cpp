@@ -1,10 +1,8 @@
 #include "Sensor.h"
 
-#include <Wire.h>
+unsigned char scd40_i2c_address = 0x62;
 
-unsigned char i2c_address = 0x62;
-
-int scd4x_offset = 0;
+float scd4x_offset = 0;
 
 //SCD4xLib
 #define CRC8_POLYNOMIAL 0x31
@@ -27,46 +25,46 @@ uint8_t sensirion_common_generate_crc(const uint8_t* data, uint16_t count) {
 }
 
 int scd4x_start_periodic_measurement () {
-  Wire.beginTransmission(i2c_address);
+  Wire.beginTransmission(scd40_i2c_address);
   Wire.write(0x21);
   Wire.write(0xb1);
   return -Wire.endTransmission();
 }
 int scd4x_start_low_power_periodic_measurement() {
-  Wire.beginTransmission(i2c_address);
+  Wire.beginTransmission(scd40_i2c_address);
   Wire.write(0x21);
   Wire.write(0xac);
   return -Wire.endTransmission();
 }
 
 int scd4x_stop_periodic_measurement() {
-  Wire.beginTransmission(i2c_address);
+  Wire.beginTransmission(scd40_i2c_address);
   Wire.write(0x3f);
   Wire.write(0x86);
   return -Wire.endTransmission();
 }
 
 int scd4x_measure_single_shot() {
-  Wire.beginTransmission(i2c_address);
+  Wire.beginTransmission(scd40_i2c_address);
   Wire.write(0x21);
   Wire.write(0x9d);
   return -Wire.endTransmission();
 }
 
 int scd4x_measure_single_shot_rht_only () {
-  Wire.beginTransmission(i2c_address);
+  Wire.beginTransmission(scd40_i2c_address);
   Wire.write(0x21);
   Wire.write(0x96);
   return -Wire.endTransmission();
 }
 
 int scd4x_read_measurement(Measurements& measurements) {
-  Wire.beginTransmission(i2c_address);
+  Wire.beginTransmission(scd40_i2c_address);
   Wire.write(0xec);
   Wire.write(0x05);
   int ret = Wire.endTransmission(false);
   if (ret)return -ret;
-  ret = Wire.requestFrom(i2c_address, 9u);
+  ret = Wire.requestFrom(scd40_i2c_address, 9u);
   if (ret != 9)return ret;
   uint8_t data[9];
   for (int i = 0; i < ret; i++) {
@@ -90,7 +88,7 @@ int scd4x_set_temperature_offset(float offset) {
   data[0] = _offset >> 8;
   data[1] = _offset & 0xff;
   uint8_t crc = sensirion_common_generate_crc(data, 2);
-  Wire.beginTransmission(i2c_address);
+  Wire.beginTransmission(scd40_i2c_address);
   Wire.write(0x24);
   Wire.write(0x1d);
   Wire.write(data[0]);
@@ -100,7 +98,7 @@ int scd4x_set_temperature_offset(float offset) {
 }
 
 unsigned long startTime;
-int sensorSingleStart(int offset)
+int sensorSingleStart(float offset)
 {
   Wire.begin(25, 21);
   int ret;
@@ -117,7 +115,7 @@ int sensorSingleGet(Measurements& measurements)
   return scd4x_read_measurement(measurements);
 }
 
-int scd4x_Setup(int offset)
+int sensorSetup(float offset)
 {
   int ret;
   scd4x_offset = offset;
@@ -128,17 +126,11 @@ int scd4x_Setup(int offset)
   return ret;
 }
 
-int sensorSetup(int offset)
-{
-  Wire.begin(25, 21);
-  return scd4x_Setup(scd4x_offset);
-}
-
 int sensorGet(Measurements& measurements)
 {
   int ret = scd4x_read_measurement(measurements);
   if (ret <= 0) {
-    ret += 10 * scd4x_Setup(scd4x_offset);
+    ret += 10 * sensorSetup(scd4x_offset);
   }
   return ret;
 }

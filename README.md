@@ -86,7 +86,7 @@ SDA:SDA
 
 # Usage LP
 
-Low Power版はSCD41でのみ有効で、省電力で熱の発生が少ないので温湿度精度が少しやつ。
+Low Power版はSCD41でのみ有効で、省電力で熱の発生が少ないので温湿度精度が少しいいやつ。
 
 プロダクトにUSB電源を入れる。
 
@@ -96,11 +96,20 @@ Low Power版はSCD41でのみ有効で、省電力で熱の発生が少ないので温湿度精度が少しやつ
 
 以下通常モードと同じ。
 
+# Usage 2
+
+第2版はSGP40を追加したもので、VOC指標が追加取得できるやつ。
+
+スクリプトはindex_vocの方をindexとして適用する必要がある。
+
 # Note
 
 下記参考
 
 SCD4xデータシート
+SGP40データシート
+
+https://github.com/Sensirion/embedded-sgp
 
 URLのデコード(https://qiita.com/dojyorin/items/07efd4a55039bcc30cb2)
 
