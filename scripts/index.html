@@ -15,6 +15,7 @@
 		<script>
 			//Date
 			var data;
+			var firstDataFlag = true;
 			var fromChart = new Date();
 			fromChart.setHours(0);
 			fromChart.setMinutes(0);
@@ -29,7 +30,7 @@
 				fromChart.setHours(0);
 				toChart = new Date(e.target.value);
 				toChart.setHours(24);
-				reDrawChart() ;
+				drawChart();
 			}
 			function resizeWindow(event){
 				reDrawChart() ;
@@ -63,17 +64,22 @@
 				chart.draw(data, options);
 			}
 			function drawChart() {
-				var query = new google.visualization.Query(<?= url ?>);
-				query.send(handleDataQueryResponse);
-			 }
+				google.script.run.withSuccessHandler(function(url){
+					var query = new google.visualization.Query(url);
+					query.send(handleDataQueryResponse);
+				}).getSheetUrl(fromChart.getFullYear().toString().padStart(4, '0')+(fromChart.getMonth()+1).toString().padStart(2, '0')+fromChart.getDate().toString().padStart(2, '0'));
+			}
 			function handleDataQueryResponse(response) {
 				data = response.getDataTable();
-				document.getElementById('co2Text').innerHTML=data.getFormattedValue(0, 1);
-				document.getElementById('tmpText').innerHTML=data.getFormattedValue(0, 2);
-				document.getElementById('humText').innerHTML=data.getFormattedValue(0, 3);
+				if(firstDataFlag){
+					document.getElementById('co2Text').innerHTML=data.getFormattedValue(0, 1);
+					document.getElementById('tmpText').innerHTML=data.getFormattedValue(0, 2);
+					document.getElementById('humText').innerHTML=data.getFormattedValue(0, 3);
+				}
 				data.setColumnLabel(1,'CO2(ppm)');
 				data.setColumnLabel(2,'Temperature(Åé)');
 				data.setColumnLabel(3,'Humidity(%RH)');
+				firstDataFlag = false;
 				reDrawChart() ;
 			}
 		</script>

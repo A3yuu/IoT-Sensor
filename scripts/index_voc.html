@@ -16,6 +16,7 @@
 		<script>
 			//Date
 			var data;
+			var firstDataFlag = true;
 			var fromChart = new Date();
 			fromChart.setHours(0);
 			fromChart.setMinutes(0);
@@ -30,14 +31,14 @@
 				fromChart.setHours(0);
 				toChart = new Date(e.target.value);
 				toChart.setHours(24);
-				reDrawChart() ;
+				drawChart();
 			}
 			function resizeWindow(event){
 				reDrawChart() ;
 			}
 			window.addEventListener('resize', resizeWindow);
 			//Graph
-			google.charts.load('48', {packages: ['corechart']}).then(drawChart);
+			google.charts.load('current', {packages: ['corechart']}).then(drawChart);
 			function reDrawChart() {
 				var options = {
 					width: '100%',
@@ -90,19 +91,24 @@
 				chart.draw(data, options);
 			}
 			function drawChart() {
-				var query = new google.visualization.Query(<?= url ?>);
-				query.send(handleDataQueryResponse);
-			 }
+				google.script.run.withSuccessHandler(function(url){
+					var query = new google.visualization.Query(url);
+					query.send(handleDataQueryResponse);
+				}).getSheetUrl(fromChart.getFullYear().toString().padStart(4, '0')+(fromChart.getMonth()+1).toString().padStart(2, '0')+fromChart.getDate().toString().padStart(2, '0'));
+			}
 			function handleDataQueryResponse(response) {
 				data = response.getDataTable();
-				document.getElementById('co2Text').innerHTML=data.getFormattedValue(0, 1);
-				document.getElementById('tmpText').innerHTML=data.getFormattedValue(0, 2);
-				document.getElementById('humText').innerHTML=data.getFormattedValue(0, 3);
-				document.getElementById('vocText').innerHTML=data.getFormattedValue(0, 4);
+				if(firstDataFlag){
+					document.getElementById('co2Text').innerHTML=data.getFormattedValue(0, 1);
+					document.getElementById('tmpText').innerHTML=data.getFormattedValue(0, 2);
+					document.getElementById('humText').innerHTML=data.getFormattedValue(0, 3);
+					document.getElementById('vocText').innerHTML=data.getFormattedValue(0, 4);
+				}
 				data.setColumnLabel(1,'CO2(ppm)');
 				data.setColumnLabel(2,'Temperature(Åé)');
 				data.setColumnLabel(3,'Humidity(%RH)');
 				data.setColumnLabel(4,'VOC Index');
+				firstDataFlag = false;
 				reDrawChart() ;
 			}
 		</script>

@@ -5,6 +5,7 @@
 #include "Sensor.h"
 #include "SensorSGP40.h"
 #include <FastLED.h>
+#include <esp_task_wdt.h>
 
 const int BUTTON_WPS = 39;
 const int LED_PIN = 27;
@@ -13,6 +14,7 @@ const int hueRed = 98;
 const int VOC_SAMPLE_RATE = 5000;//ms
 const int CO2_SAMPLE_RATE = 6;//VOC×NUM
 const int SERVER_POST_RATE = 120;//VOC×NUM
+const int wdtTimeout = 60;
 
 static CRGB leds[1];
 RTC_DATA_ATTR SaveData saveData;
@@ -23,6 +25,8 @@ RTC_DATA_ATTR int32_t counter = 0;
 void setup()
 {
   setCpuFrequencyMhz(60);
+  esp_task_wdt_init(wdtTimeout, true);
+  esp_task_wdt_add(NULL);
   counter++;
   pinMode(BUTTON_WPS, INPUT);
   Wire.begin(25, 21);
